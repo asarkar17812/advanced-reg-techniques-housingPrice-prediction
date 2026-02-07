@@ -1,27 +1,15 @@
-import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import RidgeCV, LassoCV, Ridge, LinearRegression
-
 import xgboost as xgb
 
-# =========================
-# User parameters
-# =========================
 N_SPLITS = 14
 RANDOM_STATE = 42
 
-plot_dir = r'F:\housing_prices\plots\performance'
-os.makedirs(plot_dir, exist_ok=True)
-
-# =========================
-# Load data
-# =========================
 X = pd.read_csv(r'F:\housing_prices\export\train_cleaned.csv')
 X_test = pd.read_csv(r'F:\housing_prices\export\test_cleaned.csv')
 y = pd.read_csv(r'F:\housing_prices\export\y_train.csv')['SalePrice']
@@ -33,9 +21,6 @@ X_test = X_test.drop('Id', axis=1)
 
 feature_names = X.columns
 
-# =========================
-# Handle infinities / extreme values
-# =========================
 numeric_cols = X.select_dtypes(include=[np.number]).columns
 
 # Replace inf/-inf with NaN
@@ -53,15 +38,11 @@ clip_value = 1e10
 X[numeric_cols] = X[numeric_cols].clip(-clip_value, clip_value)
 X_test[numeric_cols] = X_test[numeric_cols].clip(-clip_value, clip_value)
 
-# =========================
-# Metric
-# =========================
+
 def rmse(y_true, y_pred):
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
-# =========================
-# Models
-# =========================
+
 ridge = RidgeCV(alphas=np.logspace(-3, 2, 30))
 lasso = LassoCV(alphas=np.logspace(-4, -1, 30), max_iter=15000)
 linreg = LinearRegression()
@@ -79,9 +60,7 @@ xgb_model = xgb.XGBRegressor(
     random_state=RANDOM_STATE
 )
 
-# =========================
-# OOF predictions (all features)
-# =========================
+
 kf = KFold(n_splits=N_SPLITS, shuffle=True, random_state=RANDOM_STATE)
 
 oof = {
@@ -118,9 +97,7 @@ for fold, (tr_idx, val_idx) in enumerate(kf.split(X)):
     lasso_coef += np.abs(lasso.coef_)
     xgb_imp += xgb_model.feature_importances_
 
-# =========================
-# OOF scores
-# =========================
+
 rmse_scores = {
     'Linear': rmse(y, oof['lin']),
     'Ridge':  rmse(y, oof['ridge']),
@@ -132,16 +109,12 @@ print("\nOOF RMSE (all features):")
 for k, v in rmse_scores.items():
     print(f"{k:<8}: {v:.5f}")
 
-# =========================
-# Feature importance (aggregated)
-# =========================
+
 ridge_imp = pd.Series(ridge_coef / N_SPLITS, index=feature_names)
 lasso_imp = pd.Series(lasso_coef / N_SPLITS, index=feature_names)
 xgb_imp = pd.Series(xgb_imp / N_SPLITS, index=feature_names)
 
-# =========================
-# Weighted averaging of OOF predictions
-# =========================
+
 rmse_values = np.array([rmse_scores['Ridge'], rmse_scores['Lasso'], rmse_scores['XGB']])
 weights = 1 / rmse_values
 weights /= weights.sum()  # normalize
@@ -156,9 +129,6 @@ weighted_rmse = rmse(y, oof_weighted)
 print(f"\nOOF RMSE (weighted average): {weighted_rmse:.5f}")
 print(f"Weights: Ridge={weights[0]:.3f}, Lasso={weights[1]:.3f}, XGB={weights[2]:.3f}")
 
-# =========================
-# Stacking using all features
-# =========================
 scaler_full = RobustScaler()
 X_scaled = scaler_full.fit_transform(X)
 X_test_scaled = scaler_full.transform(X_test)  # use transform only
@@ -171,9 +141,6 @@ meta_model.fit(oof_stack, y)
 stack_rmse = rmse(y, meta_model.predict(oof_stack))
 print(f"\nOOF RMSE (stacked all features): {stack_rmse:.5f}")
 
-# =========================
-# Fit base models on full data
-# =========================
 ridge.fit(X_scaled, y)
 lasso.fit(X_scaled, y)
 xgb_model.fit(X_scaled, y)
@@ -186,9 +153,6 @@ test_stack = np.column_stack([
 
 test_pred = meta_model.predict(test_stack)
 
-# =========================
-# Diagnostic plot
-# =========================
 plt.figure(figsize=(8, 6))
 plt.scatter(y, meta_model.predict(oof_stack), alpha=0.4)
 plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--')
@@ -196,5 +160,6 @@ plt.xlabel('Actual SalePrice')
 plt.ylabel('Stacked Prediction')
 plt.title(f'Stacking (All Features) | RMSE={stack_rmse:.4f}')
 plt.tight_layout()
-plt.savefig('F:\housing_prices\plots\performance\stack_residuals.png', dpi=1200, bbox_inches='tight')
+plt.savefig(r'F:\housing_prices\plots\performance\stack_residuals.png', dpi=1200, bbox_inches='tight')
 plt.show()
+

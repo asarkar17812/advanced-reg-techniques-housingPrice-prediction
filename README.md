@@ -27,7 +27,25 @@ The goal of this project is to predict the sale price of residential homes using
 - Weighted averaging and stacking ensemble for improved accuracy
 
 ---
+## Results
 
+The out-of-fold (OOF) RMSE scores for the models and ensembles are summarized below:
+
+| Model / Ensemble            | OOF RMSE |
+|------------------------------|----------|
+| Linear Regression           | 0.12672  |
+| Ridge Regression            | 0.11126  |
+| Lasso Regression            | 0.10988  |
+| XGBoost                     | 0.11783  |
+| Weighted Average (Ridge/Lasso/XGB) | 0.10809  |
+| Stacked Ensemble (all features)   | 0.10786  |
+
+**Weighted average weights:**  
+- Ridge: 0.338  
+- Lasso: 0.342  
+- XGB: 0.319  
+
+---
 ## Data Preprocessing
 
 The preprocessing pipeline includes:
