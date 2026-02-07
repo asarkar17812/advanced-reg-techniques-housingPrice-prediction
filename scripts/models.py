@@ -162,4 +162,3 @@ plt.title(f'Stacking (All Features) | RMSE={stack_rmse:.4f}')
 plt.tight_layout()
 plt.savefig(r'F:\housing_prices\plots\performance\stack_residuals.png', dpi=1200, bbox_inches='tight')
 plt.show()
-
