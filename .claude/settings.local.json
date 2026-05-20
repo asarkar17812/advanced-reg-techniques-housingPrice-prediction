@@ -17,7 +17,8 @@
       "Bash(/f/minconda/envs/clima_env/python.exe -c \"import sklearn; from sklearn.ensemble import GradientBoostingRegressor; from sklearn.linear_model import ElasticNetCV; from sklearn.kernel_ridge import KernelRidge; print\\('all good'\\)\")",
       "Bash(/f/minconda/envs/clima_env/python.exe -m pip install lightgbm --quiet)",
       "Bash(/f/minconda/envs/clima_env/python.exe scripts/data_exploration.py)",
-      "Bash(/f/minconda/envs/clima_env/python.exe scripts/models.py)"
+      "Bash(/f/minconda/envs/clima_env/python.exe scripts/models.py)",
+      "Bash(/f/minconda/envs/clima_env/python.exe scripts/plots.py)"
     ]
   }
 }

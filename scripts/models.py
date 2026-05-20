@@ -204,6 +204,30 @@ submission.to_csv(r'F:\housing_prices\export\submission.csv', index=False)
 print(f"\nSubmission written -> export/submission.csv  (n={len(submission)})")
 
 
+# ----- Save OOF predictions and feature importances for plotting -----
+oof_df = pd.DataFrame({k: oof[k] for k in MODEL_KEYS})
+oof_df['final'] = final_oof_log
+oof_df['y']     = y.values
+oof_df.to_csv(r'F:\housing_prices\export\oof_preds.csv', index=False)
+
+# Refit Lasso and Ridge once on the full training set for stable importance display.
+# (Per-fold averages were not retained; one full fit is enough for visualization.)
+scaler_full = RobustScaler()
+X_full = scaler_full.fit_transform(X)
+lasso.fit(X_full, y)
+ridge.fit(X_full, y)
+enet.fit(X_full, y)
+
+importance_df = pd.DataFrame({
+    'feature':       feature_names,
+    'lasso_abs':     np.abs(lasso.coef_),
+    'ridge_abs':     np.abs(ridge.coef_),
+    'enet_abs':      np.abs(enet.coef_),
+    'lasso_signed':  lasso.coef_,
+}).sort_values('lasso_abs', ascending=False)
+importance_df.to_csv(r'F:\housing_prices\export\feature_importance.csv', index=False)
+
+
 # ----- Diagnostic plot -----
 plt.figure(figsize=(8, 6))
 plt.scatter(y, final_oof_log, alpha=0.4, s=12)
